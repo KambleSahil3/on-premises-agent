@@ -117,8 +117,13 @@ prompt_input "Enter INBOUND_ENDPOINT" INBOUND_ENDPOINT
 prompt_input "Enter ADMIN_PORT" ADMIN_PORT
 prompt_input "Enter INBOUND_PORT" INBOUND_PORT
 
+# Stop execution here
+echo "Please execute the next steps manually."
+exit 0
+
 echo "admin port: $ADMIN_PORT"
 echo "inbound port: $INBOUND_PORT"
+
 
 echo "AGENT SPIN-UP STARTED"
 
