@@ -1,37 +1,22 @@
 #!/bin/bash
 
-# Function to download the script
-download_script() {
-    local url=$1
-    local file_name=$2
-    if command -v curl &>/dev/null; then
-        curl -fsSL "$url" -o "$file_name"
-    elif command -v wget &>/dev/null; then
-        wget -q "$url" -O "$file_name"
-    else
-        echo "Error: Neither curl nor wget is installed. Please install one of them to proceed."
+SCRIPT_URL="https://raw.githubusercontent.com/KulkarniShashank/on-premises-agent/master/on_premises_agent.sh"
+SCRIPT_NAME="on_premises_agent.sh"
+
+# Check if the script file already exists
+if [ -f "$SCRIPT_NAME" ]; then
+    echo "$SCRIPT_NAME already exists. Executing the script."
+else
+    echo "$SCRIPT_NAME does not exist. Downloading the script."
+    curl -fsSL "$SCRIPT_URL" -o "$SCRIPT_NAME"
+    if [ $? -ne 0 ]; then
+        echo "Failed to download $SCRIPT_NAME"
         exit 1
     fi
-    chmod +x "$file_name"
-    echo "Script downloaded and made executable: $file_name"
-}
-
-# Check if the script already exists
-if [ ! -f "$SCRIPT_NAME" ]; then
-    echo "Script not found, downloading..."
-    download_script "$SCRIPT_URL" "$SCRIPT_NAME"
-else
-    echo "Script already exists, skipping download."
 fi
 
-# Execute the script if it exists
-if [ -f "$SCRIPT_NAME" ]; then
-    echo "Executing the script $SCRIPT_NAME"
-    ./"$SCRIPT_NAME"
-else
-    echo "Error: Script not found after attempted download."
-    exit 1
-fi
+# Execute the script
+bash "$SCRIPT_NAME"
 
 START_TIME=$(date +%s)
 DIR=".educreds"
