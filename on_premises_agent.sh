@@ -31,6 +31,9 @@ fi
 # Execute the script
 ./"$SCRIPT_NAME"
 
+# Prevent the script from running in a loop
+exit 0
+
 START_TIME=$(date +%s)
 DIR=".educreds"
 
