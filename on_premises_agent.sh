@@ -2,6 +2,7 @@
 
 START_TIME=$(date +%s)
 DIR=".educreds"
+mkdir -p "${PWD}/${DIR}/agent-config/parameters.conf"
 CONFIG_FILE="${PWD}/${DIR}/agent-config/parameters.conf"
 
 chmod 600 "$CONFIG_FILE" || {
