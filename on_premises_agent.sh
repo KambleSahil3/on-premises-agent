@@ -4,6 +4,11 @@ START_TIME=$(date +%s)
 DIR=".educreds"
 CONFIG_FILE="${PWD}/${DIR}/agent-config/parameters.conf"
 
+chmod 600 "$CONFIG_FILE" || {
+    echo "Error: Failed to set permissions on $CONFIG_FILE"
+    exit 1
+}
+
 # Ensure we are running in an interactive shell
 if [[ ! -t 0 ]]; then
     echo "Error: This script must be run in an interactive shell."
