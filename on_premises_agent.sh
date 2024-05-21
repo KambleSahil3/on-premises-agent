@@ -32,7 +32,7 @@ prompt_input() {
             echo "$input_variable=${!input_variable}" >>"$CONFIG_FILE"
         fi
     done
-    echo "$input_variable=${!input_variable} (loaded from config)"
+    echo "$input_variable=${!input_variable}"
 }
 
 # Function to prompt user for input with validation and save it to the config file
@@ -51,7 +51,7 @@ prompt_input_with_validation() {
             unset $input_variable
         fi
     done
-    echo "$input_variable=${!input_variable} (loaded from config)"
+    echo "$input_variable=${!input_variable}"
 }
 
 # Function to prompt user for true/false input with validation and save it to the config file
@@ -80,7 +80,7 @@ prompt_input_with_tenant_validation() {
             ;;
         esac
     done
-    echo "$input_variable=${!input_variable} (loaded from config)"
+    echo "$input_variable=${!input_variable}"
 }
 # Prompt user for input
 prompt_input "Enter ORGANIZATION_ID: " ORGANIZATION_ID
