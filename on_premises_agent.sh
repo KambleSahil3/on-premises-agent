@@ -1,55 +1,53 @@
 #!/bin/sh
 
-# # Define the URL of the script to download
-# script_url="https://raw.githubusercontent.com/KulkarniShashank/on-premises-agent/master/on_premises_agent.sh"
-
-# # Define the local filename for the downloaded script
-# script_name="on_premises_agent.sh" # Change if desired
-
-# # Hidden file to track download status (e.g., ".downloaded")
-# download_flag_file=".downloaded"
-
-# # Function to download the script if not already downloaded and execute it
-# download_and_execute_script() {
-#     # Check if the script file exists
-#     if [ ! -f "$script_name" ]; then
-#         # Download the script, suppressing error output
-#         if output=$(curl -fsSL -w "%{http_code}" -o "$script_name" "$script_url"); then
-#             http_code=$(echo "$output" | awk 'END {print $NF}')
-#             if [ "$http_code" = "200" ]; then
-#                 echo "Script downloaded successfully!"
-
-#                 # Create the download flag file
-#                 touch "$download_flag_file"
-
-#                 # Execute the script
-#                 chmod +x "$script_name"
-#                 ./"$script_name" "$@"
-#             else
-#                 echo "Error downloading script: HTTP status code $http_code"
-#                 exit 1
-#             fi
-#         else
-#             echo "Error downloading script!"
-#             exit 1
-#         fi
-#     else
-#         echo "Script already exists, skipping download."
-#     fi
-# }
-
-# # Check if the download flag file exists
-# if [ ! -f "$download_flag_file" ]; then
-#     # Call the download and execute function if the flag file doesn't exist
-#     download_and_execute_script "$@"
-# else
-#     # If the flag file exists, execute the script directly without printing messages
-#     chmod +x "$script_name"
-#     ./"$script_name" "$@"
-# fi
-
 START_TIME=$(date +%s)
 DIR=".educreds"
+
+# Function to prompt user for input
+prompt_input() {
+    echo "$1"
+    echo -n "$2: "
+    read $2
+}
+
+prompt_input_with_tenant_validation() {
+    while true; do
+        echo "$1"
+        echo "1) true"
+        echo "2) false"
+        echo -n "Select an option (1 or 2): "
+        read choice
+        case "$choice" in
+        1)
+            eval $2=true
+            break
+            ;;
+        2)
+            eval $2=false
+            break
+            ;;
+        *)
+            echo "Error: Invalid selection. Please enter 1 for 'true' or 2 for 'false'."
+            ;;
+        esac
+    done
+}
+
+prompt_input_with_webhook_host_validation() {
+    while true; do
+        echo -n "$1"
+        read $2
+        input_value=$(eval echo \$$2)
+
+        # Match http(s)://IP:port with any characters after port
+        if echo "$input_value" | grep -Eq '^http:\/\/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+.*$' ||
+            echo "$input_value" | grep -Eq '^https:\/\/[a-zA-Z0-9.-]+(:[0-9]+)?(/.*)?$'; then
+            break
+        else
+            echo "$3"
+        fi
+    done
+}
 
 # Check if the directory already exists
 if [ -d "$DIR" ]; then
@@ -61,7 +59,7 @@ else
 fi
 
 # Check if Docker is installed
-if ! command -v docker &>/dev/null; then
+if ! command -v docker >/dev/null 2>&1; then
     echo "Docker is not installed. Installing Docker..."
 
     # Install Docker
@@ -80,62 +78,10 @@ else
     echo "Docker is already installed."
 fi
 
-# Function to prompt user for input
-prompt_input() {
-    local prompt_message=$1
-    local input_variable=$2
-    read -p "$prompt_message" $input_variable
-}
-
-prompt_input_with_tenant_validation() {
-    local prompt_message=$1
-    local input_variable=$2
-    local validation_message=$3
-
-    while true; do
-        echo "$prompt_message"
-        echo "1) true"
-        echo "2) false"
-        read -p "Select an option (1 or 2): " choice
-        case "$choice" in
-        1)
-            eval $input_variable=true
-            break
-            ;;
-        2)
-            eval $input_variable=false
-            break
-            ;;
-        *)
-            echo "$validation_message"
-            ;;
-        esac
-    done
-}
-
-prompt_input_with_webhook_host_validation() {
-    local prompt_message=$1
-    local input_variable=$2
-    local validation_message=$3
-
-    while true; do
-        read -p "$prompt_message" $input_variable
-        local input_value="${!input_variable}"
-
-        # Match http(s)://IP:port with any characters after port
-        if [[ "$input_value" =~ ^http:\/\/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+.*$ ]] ||
-            [[ "$input_value" =~ ^https:\/\/[a-zA-Z0-9.-]+(:[0-9]+)?(/.*)?$ ]]; then
-            break
-        else
-            echo "$validation_message"
-        fi
-    done
-}
-
 # Prompt user for input
-prompt_input "Enter ORGANIZATION_ID: " ORGANIZATION_ID
-prompt_input "Enter WALLET_NAME: " WALLET_NAME
-prompt_input "Enter WALLET_PASSWORD: " WALLET_PASSWORD
+prompt_input "Enter ORGANIZATION_ID" ORGANIZATION_ID
+prompt_input "Enter WALLET_NAME" WALLET_NAME
+prompt_input "Enter WALLET_PASSWORD" WALLET_PASSWORD
 
 INDY_LEDGER_FORMATTED='[
     {
@@ -157,24 +103,19 @@ INDY_LEDGER_FORMATTED='[
 ]'
 
 # Proceed to prompt for other parameters
-prompt_input_with_webhook_host_validation "Enter WEBHOOK_HOST (host/domain): " WEBHOOK_HOST "Error: WEBHOOK_HOST must be in the format http://host:port or https://domain."
-prompt_input "Enter WALLET_STORAGE_HOST: " WALLET_STORAGE_HOST
-prompt_input "Enter WALLET_STORAGE_PORT: " WALLET_STORAGE_PORT
-prompt_input "Enter WALLET_STORAGE_USER: " WALLET_STORAGE_USER
-prompt_input "Enter WALLET_STORAGE_PASSWORD: " WALLET_STORAGE_PASSWORD
-prompt_input "Enter AGENT_NAME: " AGENT_NAME
-prompt_input "Enter PROTOCOL: " PROTOCOL
-prompt_input_with_tenant_validation "Choose Multi-Tenancy:" TENANT "Error: Invalid selection. Please enter 1 for 'true' or 2 for 'false'."
+prompt_input_with_webhook_host_validation "Enter WEBHOOK_HOST (host/domain)" WEBHOOK_HOST "Error: WEBHOOK_HOST must be in the format http://host:port or https://domain."
+prompt_input "Enter WALLET_STORAGE_HOST" WALLET_STORAGE_HOST
+prompt_input "Enter WALLET_STORAGE_PORT" WALLET_STORAGE_PORT
+prompt_input "Enter WALLET_STORAGE_USER" WALLET_STORAGE_USER
+prompt_input "Enter WALLET_STORAGE_PASSWORD" WALLET_STORAGE_PASSWORD
+prompt_input "Enter AGENT_NAME" AGENT_NAME
+prompt_input "Enter PROTOCOL" PROTOCOL
+prompt_input_with_tenant_validation "Choose Multi-Tenancy" TENANT "Error: Invalid selection. Please enter 1 for 'true' or 2 for 'false'."
 echo "You selected: $TENANT"
-prompt_input "Enter CREDO_IMAGE: " CREDO_IMAGE
-prompt_input "Enter INBOUND_ENDPOINT: " INBOUND_ENDPOINT
-prompt_input "Enter ADMIN_PORT: " ADMIN_PORT
-prompt_input "Enter INBOUND_PORT: " INBOUND_PORT
-
-on_premises_agent.sh --ORGANIZATION_ID "$ORGANIZATION_ID" --WALLET_NAME "$WALLET_NAME" --WALLET_PASSWORD "$WALLET_PASSWORD" --WEBHOOK_HOST "$WEBHOOK_HOST" --WALLET_STORAGE_HOST "$WALLET_STORAGE_HOST" --WALLET_STORAGE_PORT "$WALLET_STORAGE_PORT" --WALLET_STORAGE_USER "$WALLET_STORAGE_USER" --WALLET_STORAGE_PASSWORD "$WALLET_STORAGE_PASSWORD" --AGENT_NAME "$AGENT_NAME" --PROTOCOL "$PROTOCOL" --TENANT "$TENANT" --CREDO_IMAGE "$CREDO_IMAGE" --INBOUND_ENDPOINT "$INBOUND_ENDPOINT" --ADMIN_PORT "$ADMIN_PORT" --INBOUND_PORT "$INBOUND_PORT"
-
-# Run the command using user input
-# on_premises_agent.sh --ORGANIZATION_ID "$ORGANIZATION_ID" --WALLET_NAME "$WALLET_NAME" --WALLET_PASSWORD "$WALLET_PASSWORD" --WEBHOOK_HOST "$WEBHOOK_HOST" --WALLET_STORAGE_HOST "$WALLET_STORAGE_HOST" --WALLET_STORAGE_PORT "$WALLET_STORAGE_PORT" --WALLET_STORAGE_USER "$WALLET_STORAGE_USER" --WALLET_STORAGE_PASSWORD "$WALLET_STORAGE_PASSWORD" --AGENT_NAME "$AGENT_NAME" --PROTOCOL "$PROTOCOL" --TENANT "$TENANT" --CREDO_IMAGE "$CREDO_IMAGE" --INBOUND_ENDPOINT "$INBOUND_ENDPOINT" --ADMIN_PORT "$ADMIN_PORT" --INBOUND_PORT "$INBOUND_PORT"
+prompt_input "Enter CREDO_IMAGE" CREDO_IMAGE
+prompt_input "Enter INBOUND_ENDPOINT" INBOUND_ENDPOINT
+prompt_input "Enter ADMIN_PORT" ADMIN_PORT
+prompt_input "Enter INBOUND_PORT" INBOUND_PORT
 
 echo "admin port: $ADMIN_PORT"
 echo "inbound port: $INBOUND_PORT"
@@ -184,7 +125,7 @@ echo "AGENT SPIN-UP STARTED"
 if [ -d "${PWD}/${DIR}/agent-config" ]; then
     echo "agent-config directory exists."
 else
-    echo "Error: agent-config directory does not exists."
+    echo "Error: agent-config directory does not exist."
     mkdir ${PWD}/${DIR}/agent-config
 fi
 
@@ -200,17 +141,13 @@ if echo "$INBOUND_ENDPOINT" | grep -qP "^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"; then
     AGENT_ENDPOINT=$INBOUND_ENDPOINT
 else
     # Check if the input is an IP address
-    if [[ $INBOUND_ENDPOINT =~ $IP_REGEX ]]; then
+    if echo "$INBOUND_ENDPOINT" | grep -Eq "$IP_REGEX"; then
         echo "INBOUND_ENDPOINT is an IP address: $INBOUND_ENDPOINT"
         AGENT_ENDPOINT="${PROTOCOL}://${INBOUND_ENDPOINT}:${INBOUND_PORT}"
     else
         echo "Invalid input for INBOUND_ENDPOINT: $INBOUND_ENDPOINT"
     fi
 fi
-
-# Set permissions to restrict access to the agent-config directory
-# chmod 700 "${PWD}/${DIR}/agent-config"
-# echo "Permissions set to 700 for ${PWD}/${DIR}/agent-config"
 
 echo "-----$AGENT_ENDPOINT----"
 CONFIG_FILE="${PWD}/${DIR}/agent-config/${ORGANIZATION_ID}_${AGENT_NAME}.json"
@@ -267,6 +204,7 @@ cat <<EOF >${CONFIG_FILE}
   "adminPort": "$ADMIN_PORT",
   "tenancy": $TENANT
 }
+
 EOF
 
 FILE_NAME="docker-compose_${ORGANIZATION_ID}_${AGENT_NAME}.yaml"
