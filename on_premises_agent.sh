@@ -16,10 +16,6 @@ download_script() {
     echo "Script downloaded and made executable: $file_name"
 }
 
-# URL of the script in the GitHub repository
-SCRIPT_URL="https://raw.githubusercontent.com/KulkarniShashank/on-premises-agent/master/on_premises_agent.sh"
-SCRIPT_NAME="on_premises_agent.sh"
-
 # Check if the script already exists
 if [ ! -f "$SCRIPT_NAME" ]; then
     echo "Script not found, downloading..."
@@ -30,6 +26,7 @@ fi
 
 # Execute the script if it exists
 if [ -f "$SCRIPT_NAME" ]; then
+    echo "Executing the script $SCRIPT_NAME"
     ./"$SCRIPT_NAME"
 else
     echo "Error: Script not found after attempted download."
