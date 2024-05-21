@@ -3,11 +3,10 @@
 SCRIPT_URL="https://raw.githubusercontent.com/KulkarniShashank/on-premises-agent/master/on_premises_agent.sh"
 SCRIPT_NAME="on_premises_agent.sh"
 
-echo "---"
-
 # Check if the script file already exists
 if [ -f "$SCRIPT_NAME" ]; then
     echo "$SCRIPT_NAME already exists. Executing the script."
+    bash "$SCRIPT_NAME"
 else
     echo "$SCRIPT_NAME does not exist. Downloading the script."
     curl -fsSL "$SCRIPT_URL" -o "$SCRIPT_NAME"
@@ -15,10 +14,9 @@ else
         echo "Failed to download $SCRIPT_NAME"
         exit 1
     fi
+    echo "Downloaded $SCRIPT_NAME. Executing the script."
+    bash "$SCRIPT_NAME"
 fi
-
-# Execute the script
-bash "$SCRIPT_NAME"
 
 START_TIME=$(date +%s)
 DIR=".educreds"
