@@ -80,7 +80,11 @@ fi
 
 # Prompt user for input
 prompt_input "Enter ORGANIZATION_ID" ORGANIZATION_ID
+read -p "Press Enter to continue..."
+
 prompt_input "Enter WALLET_NAME" WALLET_NAME
+read -p "Press Enter to continue..."
+
 prompt_input "Enter WALLET_PASSWORD" WALLET_PASSWORD
 
 INDY_LEDGER_FORMATTED='[
