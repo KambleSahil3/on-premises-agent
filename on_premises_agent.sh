@@ -13,20 +13,20 @@ download_flag_file=".downloaded"
 download_and_execute_script() {
     # Check if the script file exists
     if [ ! -f "$script_name" ]; then
-        # Download the script
-        curl -fsSL "$script_url" -o "$script_name"
-        if [ $? -ne 0 ]; then
+        # Download the script, suppressing error output
+        if curl -fsSL "$script_url" -o "$script_name"; then
+            echo "Script downloaded successfully!"
+
+            # Create the download flag file
+            touch "$download_flag_file"
+
+            # Execute the script
+            chmod +x "$script_name"
+            ./"$script_name" "$@"
+        else
             echo "Error downloading script!"
             exit 1
         fi
-        echo "Script downloaded successfully!"
-
-        # Create the download flag file
-        touch "$download_flag_file"
-
-        # Execute the script
-        chmod +x "$script_name"
-        ./"$script_name" "$@"
     else
         echo "Script already exists, skipping download."
     fi
