@@ -6,45 +6,41 @@ script_url="https://raw.githubusercontent.com/KulkarniShashank/on_premises-agent
 # Define the local filename for the downloaded script
 script_name="on_premises_agent.sh" # Change if desired
 
-# Temporary file for download (improves safety)
-temp_file="/tmp/downloaded_script.sh"
-
 # Hidden file to track download status (e.g., ".downloaded")
 download_flag_file=".downloaded"
 
-# Function to download and execute the script
+# Function to download the script if not already downloaded and execute it
 download_and_execute_script() {
-    # Check if download flag file exists
-    if [ ! -f "$download_flag_file" ]; then
-        # Download logic with temporary file
-        curl -fsSL "$script_url" >"$temp_file"
-        if [ $? -eq 0 ]; then
-            echo "Script downloaded successfully!"
-
-            # Move downloaded script to final location (atomic operation)
-            mv "$temp_file" "$script_name"
-
-            # Verify temporary file removal (optional)
-            echo "Removing temporary file: $temp_file"
-            rm -f "$temp_file"
-
-            # Make the script executable (optional, depends on script source)
-            chmod +x "$script_name"
-
-            # Create the hidden download flag file
-            touch "$download_flag_file"
-        else
+    # Check if the script file exists
+    if [ ! -f "$script_name" ]; then
+        # Download the script
+        curl -fsSL "$script_url" -o "$script_name"
+        if [ $? -ne 0 ]; then
             echo "Error downloading script!"
-            return 1 # Indicate download failure
+            exit 1
         fi
-    fi
+        echo "Script downloaded successfully!"
 
-    # Execute the downloaded script
-    ./"$script_name" "$@" # Pass any arguments to the script
+        # Create the download flag file
+        touch "$download_flag_file"
+
+        # Execute the script
+        chmod +x "$script_name"
+        ./"$script_name" "$@"
+    else
+        echo "Script already exists, skipping download."
+    fi
 }
 
-# Call the download and execute function
-download_and_execute_script "$@"
+# Check if the download flag file exists
+if [ ! -f "$download_flag_file" ]; then
+    # Call the download and execute function if the flag file doesn't exist
+    download_and_execute_script "$@"
+else
+    # If the flag file exists, execute the script directly without printing messages
+    chmod +x "$script_name"
+    ./"$script_name" "$@"
+fi
 
 START_TIME=$(date +%s)
 DIR=".educreds"
