@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Define the URL of the script to download
 script_url="https://raw.githubusercontent.com/KulkarniShashank/on-premises-agent/master/on_premises_agent.sh"
