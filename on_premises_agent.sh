@@ -2,49 +2,58 @@
 
 START_TIME=$(date +%s)
 DIR=".educreds"
+CONFIG_FILE="${PWD}/${DIR}/agent-config/parameters.conf"
 
-# Check if the directory already exists
-if [ -d "$DIR" ]; then
-    echo "Directory $DIR already exists."
-else
-    # Create the directory
-    mkdir "$DIR"
-    echo "Directory $DIR created."
+chmod 600 "$CONFIG_FILE" || {
+    echo "Error: Failed to set permissions on $CONFIG_FILE"
+    exit 1
+}
+
+# Ensure we are running in an interactive shell
+if [[ ! -t 0 ]]; then
+    echo "Error: This script must be run in an interactive shell."
+    exit 1
 fi
 
-# Check if Docker is installed
-if ! command -v docker &>/dev/null; then
-    echo "Docker is not installed. Installing Docker..."
-
-    # Install Docker
-    curl -fsSL https://get.docker.com -o get-docker.sh
-    sudo sh get-docker.sh
-
-    # Add the current user to the docker group
-    sudo usermod -aG docker $USER
-
-    # Start and enable the Docker service
-    sudo systemctl start docker
-    sudo systemctl enable docker
-
-    echo "Docker has been installed."
-else
-    echo "Docker is already installed."
-fi
-
-# Function to prompt user for input
+# Function to prompt user for input and save it to the config file
 prompt_input() {
     local prompt_message=$1
     local input_variable=$2
-    read -p "$prompt_message" $input_variable
+    while [ -z "${!input_variable}" ]; do
+        read -p "$prompt_message" $input_variable
+        if [ -n "${!input_variable}" ]; then
+            echo "$input_variable=${!input_variable}" >>"$CONFIG_FILE"
+        fi
+    done
+    echo "$input_variable=${!input_variable} (loaded from config)"
 }
 
+# Function to prompt user for input with validation and save it to the config file
+prompt_input_with_validation() {
+    local prompt_message=$1
+    local input_variable=$2
+    local validation_pattern=$3
+    local validation_message=$4
+
+    while [ -z "${!input_variable}" ]; do
+        read -p "$prompt_message" $input_variable
+        if [[ "${!input_variable}" =~ $validation_pattern ]]; then
+            echo "$input_variable=${!input_variable}" >>"$CONFIG_FILE"
+        else
+            echo "$validation_message"
+            unset $input_variable
+        fi
+    done
+    echo "$input_variable=${!input_variable} (loaded from config)"
+}
+
+# Function to prompt user for true/false input with validation and save it to the config file
 prompt_input_with_tenant_validation() {
     local prompt_message=$1
     local input_variable=$2
     local validation_message=$3
 
-    while true; do
+    while [ -z "${!input_variable}" ]; do
         echo "$prompt_message"
         echo "1) true"
         echo "2) false"
@@ -52,37 +61,33 @@ prompt_input_with_tenant_validation() {
         case "$choice" in
         1)
             eval $input_variable=true
-            break
+            echo "$input_variable=true" >>"$CONFIG_FILE"
             ;;
         2)
             eval $input_variable=false
-            break
+            echo "$input_variable=false" >>"$CONFIG_FILE"
             ;;
         *)
             echo "$validation_message"
+            unset $input_variable
             ;;
         esac
     done
+    echo "$input_variable=${!input_variable} (loaded from config)"
 }
 
-prompt_input_with_webhook_host_validation() {
-    local prompt_message=$1
-    local input_variable=$2
-    local validation_message=$3
+# Create the .educreds directory if it does not exist
+if [ ! -d "$DIR" ]; then
+    mkdir -p "${PWD}/${DIR}/agent-config"
+fi
 
-    while true; do
-        read -p "$prompt_message" $input_variable
-        local input_value="${!input_variable}"
-
-        # Match http(s)://IP:port with any characters after port
-        if [[ "$input_value" =~ ^http:\/\/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+.*$ ]] ||
-            [[ "$input_value" =~ ^https:\/\/[a-zA-Z0-9.-]+(:[0-9]+)?(/.*)?$ ]]; then
-            break
-        else
-            echo "$validation_message"
-        fi
-    done
-}
+# Load parameters from the configuration file if it exists
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+else
+    # Create a new configuration file
+    touch "$CONFIG_FILE"
+fi
 
 # Prompt user for input
 prompt_input "Enter ORGANIZATION_ID: " ORGANIZATION_ID
@@ -109,7 +114,7 @@ INDY_LEDGER_FORMATTED='[
 ]'
 
 # Proceed to prompt for other parameters
-prompt_input_with_webhook_host_validation "Enter WEBHOOK_HOST (host/domain): " WEBHOOK_HOST "Error: WEBHOOK_HOST must be in the format http://host:port or https://domain."
+prompt_input_with_validation "Enter WEBHOOK_HOST (host/domain): " WEBHOOK_HOST "^(http:\/\/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+.*|https:\/\/[a-zA-Z0-9.-]+(:[0-9]+)?(/.*)?)$" "Error: WEBHOOK_HOST must be in the format http://host:port or https://domain."
 prompt_input "Enter WALLET_STORAGE_HOST: " WALLET_STORAGE_HOST
 prompt_input "Enter WALLET_STORAGE_PORT: " WALLET_STORAGE_PORT
 prompt_input "Enter WALLET_STORAGE_USER: " WALLET_STORAGE_USER
@@ -257,8 +262,8 @@ volumes:
 EOF
 
 # Set ownership and restrict permissions of the .educreds directory
-sudo chown -R $USER: "$DIR"
-chmod -R 700 "$DIR"
+# sudo chown -R $USER: "$DIR"
+# chmod -R 700 "$DIR"
 
 if [ $? -eq 0 ]; then
     cd ${PWD}/${DIR}
