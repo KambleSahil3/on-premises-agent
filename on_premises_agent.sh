@@ -3,6 +3,8 @@
 SCRIPT_URL="https://raw.githubusercontent.com/KulkarniShashank/on-premises-agent/master/on_premises_agent.sh"
 SCRIPT_NAME="on_premises_agent.sh"
 
+echo "---"
+
 # Check if the script file already exists
 if [ -f "$SCRIPT_NAME" ]; then
     echo "$SCRIPT_NAME already exists. Executing the script."
