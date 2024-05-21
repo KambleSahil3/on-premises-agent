@@ -28,20 +28,16 @@ else
     echo "Script already exists, skipping download."
 fi
 
-# Execute the script
-./"$SCRIPT_NAME"
-
-# Prevent the script from running in a loop
-exit 0
+# Execute the script if it exists
+if [ -f "$SCRIPT_NAME" ]; then
+    ./"$SCRIPT_NAME"
+else
+    echo "Error: Script not found after attempted download."
+    exit 1
+fi
 
 START_TIME=$(date +%s)
 DIR=".educreds"
-
-# Check if the script is being run directly or if the user wants to download it
-if [ "$1" == "--download" ]; then
-    download_script "$SCRIPT_URL" "on_premises_agent.sh"
-    exit 0
-fi
 
 # Check if the directory already exists
 if [ -d "$DIR" ]; then
