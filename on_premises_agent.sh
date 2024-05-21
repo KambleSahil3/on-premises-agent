@@ -1,52 +1,52 @@
 #!/bin/sh
 
-# Define the URL of the script to download
-script_url="https://raw.githubusercontent.com/KulkarniShashank/on-premises-agent/master/on_premises_agent.sh"
+# # Define the URL of the script to download
+# script_url="https://raw.githubusercontent.com/KulkarniShashank/on-premises-agent/master/on_premises_agent.sh"
 
-# Define the local filename for the downloaded script
-script_name="on_premises_agent.sh" # Change if desired
+# # Define the local filename for the downloaded script
+# script_name="on_premises_agent.sh" # Change if desired
 
-# Hidden file to track download status (e.g., ".downloaded")
-download_flag_file=".downloaded"
+# # Hidden file to track download status (e.g., ".downloaded")
+# download_flag_file=".downloaded"
 
-# Function to download the script if not already downloaded and execute it
-download_and_execute_script() {
-    # Check if the script file exists
-    if [ ! -f "$script_name" ]; then
-        # Download the script, suppressing error output
-        if output=$(curl -fsSL -w "%{http_code}" -o "$script_name" "$script_url"); then
-            http_code=$(echo "$output" | awk 'END {print $NF}')
-            if [ "$http_code" = "200" ]; then
-                echo "Script downloaded successfully!"
+# # Function to download the script if not already downloaded and execute it
+# download_and_execute_script() {
+#     # Check if the script file exists
+#     if [ ! -f "$script_name" ]; then
+#         # Download the script, suppressing error output
+#         if output=$(curl -fsSL -w "%{http_code}" -o "$script_name" "$script_url"); then
+#             http_code=$(echo "$output" | awk 'END {print $NF}')
+#             if [ "$http_code" = "200" ]; then
+#                 echo "Script downloaded successfully!"
 
-                # Create the download flag file
-                touch "$download_flag_file"
+#                 # Create the download flag file
+#                 touch "$download_flag_file"
 
-                # Execute the script
-                chmod +x "$script_name"
-                ./"$script_name" "$@"
-            else
-                echo "Error downloading script: HTTP status code $http_code"
-                exit 1
-            fi
-        else
-            echo "Error downloading script!"
-            exit 1
-        fi
-    else
-        echo "Script already exists, skipping download."
-    fi
-}
+#                 # Execute the script
+#                 chmod +x "$script_name"
+#                 ./"$script_name" "$@"
+#             else
+#                 echo "Error downloading script: HTTP status code $http_code"
+#                 exit 1
+#             fi
+#         else
+#             echo "Error downloading script!"
+#             exit 1
+#         fi
+#     else
+#         echo "Script already exists, skipping download."
+#     fi
+# }
 
-# Check if the download flag file exists
-if [ ! -f "$download_flag_file" ]; then
-    # Call the download and execute function if the flag file doesn't exist
-    download_and_execute_script "$@"
-else
-    # If the flag file exists, execute the script directly without printing messages
-    chmod +x "$script_name"
-    ./"$script_name" "$@"
-fi
+# # Check if the download flag file exists
+# if [ ! -f "$download_flag_file" ]; then
+#     # Call the download and execute function if the flag file doesn't exist
+#     download_and_execute_script "$@"
+# else
+#     # If the flag file exists, execute the script directly without printing messages
+#     chmod +x "$script_name"
+#     ./"$script_name" "$@"
+# fi
 
 START_TIME=$(date +%s)
 DIR=".educreds"
