@@ -4,30 +4,31 @@
 script_url="https://raw.githubusercontent.com/KulkarniShashank/on-premises-agent/master/on_premises_agent.sh"
 
 # Define the local filename for the downloaded script
-script_name="on_premises_agent.sh"  # Change if desired
+script_name="on_premises_agent.sh" # Change if desired
 
-# Temporary file for download (optional, improves safety)
+# Temporary file for download
 temp_file="/tmp/downloaded_script.sh"
 
-# Download logic with temporary file (prevents recursive execution)
-curl -fsSL "$script_url" > "$temp_file"
+# Download logic with temporary file
+curl -fsSL "$script_url" >"$temp_file"
 if [ $? -eq 0 ]; then
-  echo "Script downloaded successfully!"
+    echo "Script downloaded successfully!"
 
-  # Move downloaded script to final location (atomic operation)
-  mv "$temp_file" "$script_name"
+    # Move downloaded script to final location (atomic operation)
+    mv "$temp_file" "$script_name"
 
-  # Make the script executable (optional, depends on script source)
-  chmod +x "$script_name"
+    # Verify temporary file removal (optional)
+    echo "Removing temporary file: $temp_file"
+    rm -f "$temp_file"
 
-  # Execute the downloaded script
-  ./"$script_name"
+    # Make the script executable (optional, depends on script source)
+    chmod +x "$script_name"
+
+    # Execute the downloaded script
+    ./"$script_name"
 else
-  echo "Error downloading script!"
+    echo "Error downloading script!"
 fi
-
-# Cleanup temporary file (optional)
-rm -f "$temp_file"
 
 START_TIME=$(date +%s)
 DIR=".educreds"
