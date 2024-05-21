@@ -1,21 +1,25 @@
 #!/bin/bash
 
-SCRIPT_URL="https://raw.githubusercontent.com/KulkarniShashank/on-premises-agent/master/on_premises_agent.sh"
-SCRIPT_NAME="on_premises_agent.sh"
+# Define the URL of the script to download
+script_url="https://raw.githubusercontent.com/KulkarniShashank/on-premises-agent/master/on_premises_agent.sh"
 
-# Check if the script file already exists
-if [ -f "$SCRIPT_NAME" ]; then
-    echo "$SCRIPT_NAME already exists. Executing the script."
-    bash "$SCRIPT_NAME"
+# Define the local filename for the downloaded script (optional)
+script_name="on_premises_agent.sh"  # Change if desired
+
+# Download the script
+curl -fsSL "$script_url" > "$script_name"  # Download and save to a file
+
+# Check if download was successful
+if [ $? -eq 0 ]; then
+  echo "Script downloaded successfully!"
+
+  # Make the script executable (optional, depends on script source)
+  chmod +x "$script_name"
+
+  # Execute the downloaded script
+  ./"$script_name"
 else
-    echo "$SCRIPT_NAME does not exist. Downloading the script."
-    curl -fsSL "$SCRIPT_URL" -o "$SCRIPT_NAME"
-    if [ $? -ne 0 ]; then
-        echo "Failed to download $SCRIPT_NAME"
-        exit 1
-    fi
-    echo "Downloaded $SCRIPT_NAME. Executing the script."
-    bash "$SCRIPT_NAME"
+  echo "Error downloading script!"
 fi
 
 START_TIME=$(date +%s)
