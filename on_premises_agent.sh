@@ -1,19 +1,30 @@
 #!/bin/bash
 
-START_TIME=$(date +%s)
+SSTART_TIME=$(date +%s)
 DIR=".educreds"
 CONFIG_FILE="${PWD}/${DIR}/agent-config/parameters.conf"
-
-chmod 600 "$CONFIG_FILE" || {
-    echo "Error: Failed to set permissions on $CONFIG_FILE"
-    exit 1
-}
 
 # Ensure we are running in an interactive shell
 if [[ ! -t 0 ]]; then
     echo "Error: This script must be run in an interactive shell."
     exit 1
 fi
+
+# Create the .educreds directory and the agent-config directory if they do not exist
+if [ ! -d "$DIR/agent-config" ]; then
+    mkdir -p "$DIR/agent-config"
+fi
+
+# Create the configuration file if it does not exist
+if [ ! -f "$CONFIG_FILE" ]; then
+    touch "$CONFIG_FILE"
+fi
+
+# Set permissions on the configuration file
+chmod 600 "$CONFIG_FILE" || {
+    echo "Error: Failed to set permissions on $CONFIG_FILE"
+    exit 1
+}
 
 # Function to prompt user for input and save it to the config file
 prompt_input() {
@@ -76,11 +87,6 @@ prompt_input_with_tenant_validation() {
     echo "$input_variable=${!input_variable} (loaded from config)"
 }
 
-# Create the .educreds directory if it does not exist
-if [ ! -d "$DIR" ]; then
-    mkdir -p "${PWD}/${DIR}/agent-config"
-fi
-
 # Load parameters from the configuration file if it exists
 if [ -f "$CONFIG_FILE" ]; then
     source "$CONFIG_FILE"
@@ -128,6 +134,7 @@ prompt_input "Enter INBOUND_ENDPOINT: " INBOUND_ENDPOINT
 prompt_input "Enter ADMIN_PORT: " ADMIN_PORT
 prompt_input "Enter INBOUND_PORT: " INBOUND_PORT
 
+# Running the command with user input
 on_premises_agent.sh --ORGANIZATION_ID "$ORGANIZATION_ID" --WALLET_NAME "$WALLET_NAME" --WALLET_PASSWORD "$WALLET_PASSWORD" --WEBHOOK_HOST "$WEBHOOK_HOST" --WALLET_STORAGE_HOST "$WALLET_STORAGE_HOST" --WALLET_STORAGE_PORT "$WALLET_STORAGE_PORT" --WALLET_STORAGE_USER "$WALLET_STORAGE_USER" --WALLET_STORAGE_PASSWORD "$WALLET_STORAGE_PASSWORD" --AGENT_NAME "$AGENT_NAME" --PROTOCOL "$PROTOCOL" --TENANT "$TENANT" --CREDO_IMAGE "$CREDO_IMAGE" --INBOUND_ENDPOINT "$INBOUND_ENDPOINT" --ADMIN_PORT "$ADMIN_PORT" --INBOUND_PORT "$INBOUND_PORT"
 
 # Run the command using user input
