@@ -17,7 +17,7 @@ download_script() {
 }
 
 # URL of the script in the GitHub repository
-SCRIPT_URL="https://raw.githubusercontent.com/username/repository/branch/on_premises_agent.sh"
+SCRIPT_URL="https://raw.githubusercontent.com/KulkarniShashank/on-premises-agent/master/on_premises_agent.sh"
 
 # Check if the script is being run directly or if the user wants to download it
 if [ "$1" == "--download" ]; then
