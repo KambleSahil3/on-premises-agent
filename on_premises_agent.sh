@@ -14,9 +14,11 @@ fi
 prompt_input() {
     local prompt_message=$1
     local input_variable=$2
-    while [ -z "${!input_variable}" ]; then
+    while [ -z "${!input_variable}" ]; do
         read -p "$prompt_message" $input_variable
-        echo "$input_variable=${!input_variable}" >> "$CONFIG_FILE"
+        if [ -n "${!input_variable}" ]; then
+            echo "$input_variable=${!input_variable}" >>"$CONFIG_FILE"
+        fi
     done
     echo "$input_variable=${!input_variable} (loaded from config)"
 }
@@ -31,7 +33,7 @@ prompt_input_with_validation() {
     while [ -z "${!input_variable}" ]; do
         read -p "$prompt_message" $input_variable
         if [[ "${!input_variable}" =~ $validation_pattern ]]; then
-            echo "$input_variable=${!input_variable}" >> "$CONFIG_FILE"
+            echo "$input_variable=${!input_variable}" >>"$CONFIG_FILE"
         else
             echo "$validation_message"
             unset $input_variable
@@ -54,11 +56,11 @@ prompt_input_with_tenant_validation() {
         case "$choice" in
         1)
             eval $input_variable=true
-            echo "$input_variable=true" >> "$CONFIG_FILE"
+            echo "$input_variable=true" >>"$CONFIG_FILE"
             ;;
         2)
             eval $input_variable=false
-            echo "$input_variable=false" >> "$CONFIG_FILE"
+            echo "$input_variable=false" >>"$CONFIG_FILE"
             ;;
         *)
             echo "$validation_message"
