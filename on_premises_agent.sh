@@ -6,20 +6,21 @@ script_url="https://raw.githubusercontent.com/KulkarniShashank/on-premises-agent
 # Define the local filename for the downloaded script (optional)
 script_name="on_premises_agent.sh"  # Change if desired
 
-# Download the script
-curl -fsSL "$script_url" > "$script_name"  # Download and save to a file
-
-# Check if download was successful
-if [ $? -eq 0 ]; then
+# Check if the script already exists
+if [ ! -f "$script_name" ]; then
+  # Download the script only if it doesn't exist
+  curl -fsSL "$script_url" > "$script_name"
   echo "Script downloaded successfully!"
 
   # Make the script executable (optional, depends on script source)
   chmod +x "$script_name"
+fi
 
-  # Execute the downloaded script
+# Execute the downloaded script (assuming it exists)
+if [ -f "$script_name" ]; then
   ./"$script_name"
 else
-  echo "Error downloading script!"
+  echo "Script not found. Download might have failed."
 fi
 
 START_TIME=$(date +%s)
