@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Define the URL of the script to download
 script_url="https://raw.githubusercontent.com/KulkarniShashank/on_premises-agent/master/on_premises_agent.sh"
@@ -14,15 +14,21 @@ download_and_execute_script() {
     # Check if the script file exists
     if [ ! -f "$script_name" ]; then
         # Download the script, suppressing error output
-        if curl -fsSL "$script_url" -o "$script_name"; then
-            echo "Script downloaded successfully!"
+        if output=$(curl -fsSL -w "%{http_code}" "$script_url" -o "$script_name"); then
+            http_code=$(tail -n1 <<< "$output")
+            if [ "$http_code" = "200" ]; then
+                echo "Script downloaded successfully!"
 
-            # Create the download flag file
-            touch "$download_flag_file"
+                # Create the download flag file
+                touch "$download_flag_file"
 
-            # Execute the script
-            chmod +x "$script_name"
-            ./"$script_name" "$@"
+                # Execute the script
+                chmod +x "$script_name"
+                ./"$script_name" "$@"
+            else
+                echo "Error downloading script: HTTP status code $http_code"
+                exit 1
+            fi
         else
             echo "Error downloading script!"
             exit 1
