@@ -22,12 +22,21 @@ chmod 600 "$CONFIG_FILE" || {
     exit 1
 }
 
-# Function to prompt user for input and save it to the config file
+# Define color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Function to prompt the user for input with an example
 prompt_input() {
     local prompt_message=$1
-    local input_variable=$2
+    local example_message=$2
+    local input_variable=$3
+
     while [ -z "${!input_variable}" ]; do
-        read -p "$prompt_message" $input_variable
+        read -p "$(echo -e "${YELLOW}${prompt_message}${NC} (e.g., ${BLUE}${example_message}${NC}): ")" $input_variable
         if [ -n "${!input_variable}" ]; then
             echo "$input_variable=${!input_variable}" >>"$CONFIG_FILE"
         fi
@@ -43,11 +52,11 @@ prompt_input_with_validation() {
     local validation_message=$4
 
     while [ -z "${!input_variable}" ]; do
-        read -p "$prompt_message" $input_variable
+        read -p "$(echo -e "${YELLOW}${prompt_message}${NC}") " $input_variable
         if [[ "${!input_variable}" =~ $validation_pattern ]]; then
             echo "$input_variable=${!input_variable}" >>"$CONFIG_FILE"
         else
-            echo "$validation_message"
+            echo -e "${RED}${validation_message}${NC}"
             unset $input_variable
         fi
     done
@@ -61,10 +70,10 @@ prompt_input_with_tenant_validation() {
     local validation_message=$3
 
     while [ -z "${!input_variable}" ]; do
-        echo "$prompt_message"
-        echo "1) true"
-        echo "2) false"
-        read -p "Select an option (1 or 2): " choice
+        echo -e "${YELLOW}$prompt_message${NC}"
+        echo -e "${GREEN}1) true${NC}"
+        echo -e "${GREEN}2) false${NC}"
+        read -p "$(echo -e "${YELLOW}Select an option (1 or 2):${NC} ")" choice
         case "$choice" in
         1)
             eval $input_variable=true
@@ -75,17 +84,54 @@ prompt_input_with_tenant_validation() {
             echo "$input_variable=false" >>"$CONFIG_FILE"
             ;;
         *)
-            echo "$validation_message"
+            echo -e "${RED}${validation_message}${NC}"
             unset $input_variable
             ;;
         esac
     done
     echo "$input_variable=${!input_variable}"
 }
+
+# Function to prompt user for http/https input with validation and save it to the config file
+prompt_input_with_protocol_validation() {
+    local prompt_message=$1
+    local input_variable=$2
+    local validation_message=$3
+
+    while [ -z "${!input_variable}" ]; do
+        echo -e "${YELLOW}$prompt_message${NC}"
+        echo -e "${GREEN}1) http${NC}"
+        echo -e "${GREEN}2) https${NC}"
+        read -p "$(echo -e "${YELLOW}Select an option (1 or 2):${NC} ")" choice
+        case "$choice" in
+        1)
+            eval $input_variable=http
+            echo "$input_variable=http" >>"$CONFIG_FILE"
+            ;;
+        2)
+            eval $input_variable=https
+            echo "$input_variable=https" >>"$CONFIG_FILE"
+            ;;
+        *)
+            echo -e "${RED}${validation_message}${NC}"
+            unset $input_variable
+            ;;
+        esac
+    done
+    echo "$input_variable=${!input_variable}"
+}
+
+# Function to sanitize the project name
+sanitize_name() {
+    local name=$1
+    name=$(echo "$name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/_/g')
+    echo "$name"
+}
+
 # Prompt user for input
-prompt_input "Enter ORGANIZATION_ID: " ORGANIZATION_ID
-prompt_input "Enter WALLET_NAME: " WALLET_NAME
-prompt_input "Enter WALLET_PASSWORD: " WALLET_PASSWORD
+prompt_input "Enter ORGANIZATION_ID: " "54deed08-e639-4c44-b22b-c955f5444ad3" ORGANIZATION_ID
+prompt_input "Enter WALLET_NAME: " "educreds" WALLET_NAME
+prompt_input "Enter WALLET_PASSWORD: " "password" WALLET_PASSWORD
 
 INDY_LEDGER_FORMATTED='[
     {
@@ -108,24 +154,28 @@ INDY_LEDGER_FORMATTED='[
 
 # Proceed to prompt for other parameters
 prompt_input_with_validation "Enter WEBHOOK_HOST (host/domain): " WEBHOOK_HOST "^(http:\/\/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+.*|https:\/\/[a-zA-Z0-9.-]+(:[0-9]+)?(/.*)?)$" "Error: WEBHOOK_HOST must be in the format http://host:port or https://domain."
-prompt_input "Enter WALLET_STORAGE_HOST: " WALLET_STORAGE_HOST
-prompt_input "Enter WALLET_STORAGE_PORT: " WALLET_STORAGE_PORT
-prompt_input "Enter WALLET_STORAGE_USER: " WALLET_STORAGE_USER
-prompt_input "Enter WALLET_STORAGE_PASSWORD: " WALLET_STORAGE_PASSWORD
-prompt_input "Enter AGENT_NAME: " AGENT_NAME
-prompt_input "Enter PROTOCOL: " PROTOCOL
+prompt_input "Enter WALLET_STORAGE_HOST: " "(host: 127.0.0.1)/(domain: www.example.com)" WALLET_STORAGE_HOST
+prompt_input "Enter WALLET_STORAGE_PORT: " "5432" WALLET_STORAGE_PORT
+prompt_input "Enter WALLET_STORAGE_USER: " "postgres" WALLET_STORAGE_USER
+prompt_input "Enter WALLET_STORAGE_PASSWORD: " "password" WALLET_STORAGE_PASSWORD
+prompt_input "Enter AGENT_NAME: " "educreds" AGENT_NAME
+prompt_input_with_protocol_validation "Choose PROTOCOL:" PROTOCOL "Error: Invalid selection. Please enter 1 for 'http' or 2 for 'https'."
+echo "You selected: $PROTOCOL"
 prompt_input_with_tenant_validation "Choose Multi-Tenancy:" TENANT "Error: Invalid selection. Please enter 1 for 'true' or 2 for 'false'."
 echo "You selected: $TENANT"
-prompt_input "Enter CREDO_IMAGE: " CREDO_IMAGE
-prompt_input "Enter INBOUND_ENDPOINT: " INBOUND_ENDPOINT
-prompt_input "Enter ADMIN_PORT: " ADMIN_PORT
-prompt_input "Enter INBOUND_PORT: " INBOUND_PORT
+prompt_input "Enter CREDO_IMAGE: " "afj-0.5.0:latest" CREDO_IMAGE
+prompt_input "Enter INBOUND_ENDPOINT: " "(host: 127.0.0.1)/(domain: www.example.com)" INBOUND_ENDPOINT
+prompt_input "Enter ADMIN_PORT: " "4001" ADMIN_PORT
+prompt_input "Enter INBOUND_PORT: " "4002" INBOUND_PORT
+
+# Sanitize AGENT_NAME
+SANITIZED_AGENT_NAME=$(sanitize_name "$AGENT_NAME")
+echo "Sanitized AGENT_NAME: $SANITIZED_AGENT_NAME"
 
 # Running the command with user input
 ./on_premises_agent.sh --ORGANIZATION_ID "$ORGANIZATION_ID" --WALLET_NAME "$WALLET_NAME" --WALLET_PASSWORD "$WALLET_PASSWORD" --WEBHOOK_HOST "$WEBHOOK_HOST" --WALLET_STORAGE_HOST "$WALLET_STORAGE_HOST" --WALLET_STORAGE_PORT "$WALLET_STORAGE_PORT" --WALLET_STORAGE_USER "$WALLET_STORAGE_USER" --WALLET_STORAGE_PASSWORD "$WALLET_STORAGE_PASSWORD" --AGENT_NAME "$AGENT_NAME" --PROTOCOL "$PROTOCOL" --TENANT "$TENANT" --CREDO_IMAGE "$CREDO_IMAGE" --INBOUND_ENDPOINT "$INBOUND_ENDPOINT" --ADMIN_PORT "$ADMIN_PORT" --INBOUND_PORT "$INBOUND_PORT"
 
 # Run the command using user input
-# on_premises_agent.sh --ORGANIZATION_ID "$ORGANIZATION_ID" --WALLET_NAME "$WALLET_NAME" --WALLET_PASSWORD "$WALLET_PASSWORD" --WEBHOOK_HOST "$WEBHOOK_HOST" --WALLET_STORAGE_HOST "$WALLET_STORAGE_HOST" --WALLET_STORAGE_PORT "$WALLET_STORAGE_PORT" --WALLET_STORAGE_USER "$WALLET_STORAGE_USER" --WALLET_STORAGE_PASSWORD "$WALLET_STORAGE_PASSWORD" --AGENT_NAME "$AGENT_NAME" --PROTOCOL "$PROTOCOL" --TENANT "$TENANT" --CREDO_IMAGE "$CREDO_IMAGE" --INBOUND_ENDPOINT "$INBOUND_ENDPOINT" --ADMIN_PORT "$ADMIN_PORT" --INBOUND_PORT "$INBOUND_PORT"
 
 echo "admin port: $ADMIN_PORT"
 echo "inbound port: $INBOUND_PORT"
@@ -164,7 +214,7 @@ fi
 # echo "Permissions set to 700 for ${PWD}/${DIR}/agent-config"
 
 echo "-----$AGENT_ENDPOINT----"
-CONFIG_FILE="${PWD}/${DIR}/agent-config/${ORGANIZATION_ID}_${AGENT_NAME}.json"
+CONFIG_FILE="${PWD}/${DIR}/agent-config/${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}.json"
 
 # Check if the file exists
 if [ -f "$CONFIG_FILE" ]; then
@@ -187,7 +237,7 @@ echo "Ports $ADMIN_PORT and $INBOUND_PORT have been enabled in the firewall."
 
 cat <<EOF >${CONFIG_FILE}
 {
-  "label": "${ORGANIZATION_ID}_${AGENT_NAME}",
+  "label": "${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}",
   "walletId": "$WALLET_NAME",
   "walletKey": "$WALLET_PASSWORD",
   "walletType": "postgres",
@@ -220,7 +270,7 @@ cat <<EOF >${CONFIG_FILE}
 }
 EOF
 
-FILE_NAME="docker-compose_${ORGANIZATION_ID}_${AGENT_NAME}.yaml"
+FILE_NAME="docker-compose_${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}.yaml"
 
 DOCKER_COMPOSE="${PWD}/${DIR}/${FILE_NAME}"
 
@@ -236,7 +286,7 @@ services:
   agent:
     image: $CREDO_IMAGE
 
-    container_name: ${ORGANIZATION_ID}_${AGENT_NAME}
+    container_name: ${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}
     restart: always
     environment:
       AFJ_REST_LOG_LEVEL: 1
@@ -245,7 +295,7 @@ services:
      - ${ADMIN_PORT}:${ADMIN_PORT}
    
     volumes: 
-      - ./agent-config/${ORGANIZATION_ID}_${AGENT_NAME}.json:/config.json   
+      - ./agent-config/${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}.json:/config.json   
       
     command: --auto-accept-connections --config /config.json
       
@@ -265,18 +315,18 @@ if [ $? -eq 0 ]; then
     echo "================="
     echo "spinning up the container"
     echo "================="
-    echo "container-name::::::${AGENT_NAME}"
+    echo "container-name::::::${SANITIZED_AGENT_NAME}"
     echo "file-name::::::$FILE_NAME"
 
-    docker compose -p "${ORGANIZATION_ID}_${AGENT_NAME}" -f $FILE_NAME up -d
+    docker compose -p "${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}" -f $FILE_NAME up -d
     if [ $? -eq 0 ]; then
 
         echo "Creating agent config"
         # Capture the logs from the container
-        container_id=$(docker ps -q --filter "name=${ORGANIZATION_ID}_${AGENT_NAME}")
+        container_id=$(docker ps -q --filter "name=${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}")
 
         if [ -z "$container_id" ]; then
-            echo "Error: No container found with name ${ORGANIZATION_ID}_${AGENT_NAME}"
+            echo "Error: No container found with name ${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}"
             exit 1
         fi
 
@@ -295,7 +345,7 @@ if [ $? -eq 0 ]; then
         done
 
         if [ -z "$container_logs" ]; then
-            echo "Error: No logs found for container ${ORGANIZATION_ID}_${AGENT_NAME} after waiting"
+            echo "Error: No logs found for container ${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME} after waiting"
             exit 1
         fi
 
