@@ -130,7 +130,7 @@ sanitize_name() {
 
 # Prompt user for input
 prompt_input "Enter ORGANIZATION_ID: " "54deed08-e639-4c44-b22b-c955f5444ad3" ORGANIZATION_ID
-prompt_input "Enter WALLET_NAME: " "educreds" WALLET_NAME
+prompt_input "Enter WALLET_NAME: " "xyz" WALLET_NAME
 prompt_input "Enter WALLET_PASSWORD: " "password" WALLET_PASSWORD
 
 INDY_LEDGER_FORMATTED='[
@@ -158,7 +158,7 @@ prompt_input "Enter WALLET_STORAGE_HOST: " "(host: 127.0.0.1)/(domain: www.examp
 prompt_input "Enter WALLET_STORAGE_PORT: " "5432" WALLET_STORAGE_PORT
 prompt_input "Enter WALLET_STORAGE_USER: " "postgres" WALLET_STORAGE_USER
 prompt_input "Enter WALLET_STORAGE_PASSWORD: " "password" WALLET_STORAGE_PASSWORD
-prompt_input "Enter AGENT_NAME: " "educreds" AGENT_NAME
+prompt_input "Enter AGENT_NAME: " "xyz" AGENT_NAME
 prompt_input_with_protocol_validation "Choose PROTOCOL:" PROTOCOL "Error: Invalid selection. Please enter 1 for 'http' or 2 for 'https'."
 echo "You selected: $PROTOCOL"
 prompt_input_with_tenant_validation "Choose Multi-Tenancy:" TENANT "Error: Invalid selection. Please enter 1 for 'true' or 2 for 'false'."
