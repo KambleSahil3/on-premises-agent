@@ -318,7 +318,7 @@ if [ $? -eq 0 ]; then
     echo "container-name::::::${SANITIZED_AGENT_NAME}"
     echo "file-name::::::$FILE_NAME"
 
-    docker compose -p "${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}" -f $FILE_NAME up -d
+    docker-compose "${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}" -f $FILE_NAME up -d
     if [ $? -eq 0 ]; then
 
         echo "Creating agent config"
