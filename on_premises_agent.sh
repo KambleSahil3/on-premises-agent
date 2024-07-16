@@ -256,18 +256,18 @@ cat <<EOF >${CONFIG_FILE}
   "autoAcceptConnections": true,
   "autoAcceptCredentials": "contentApproved",
   "autoAcceptProofs": "contentApproved",
-  "logLevel": 5,
+  "logLevel": 2,
   "inboundTransport": [
     {
       "transport": "$PROTOCOL",
-      "port": "$INBOUND_PORT"
+      "port": $INBOUND_PORT
     }
   ],
   "outboundTransport": [
     "$PROTOCOL"
   ],
   "webhookUrl": "$WEBHOOK_HOST",
-  "adminPort": "$ADMIN_PORT",
+  "adminPort": $ADMIN_PORT,
   "tenancy": $TENANT
 }
 EOF
@@ -320,7 +320,11 @@ if [ $? -eq 0 ]; then
     echo "container-name::::::${SANITIZED_AGENT_NAME}"
     echo "file-name::::::$FILE_NAME"
 
-    docker-compose -p "${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}" -f $FILE_NAME up -d
+    PROJECT_NAME=$(echo "${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+
+    docker rm -f "${PROJECT_NAME}" || true
+    docker-compose -f $FILE_NAME --project-name "${PROJECT_NAME}" up -d
+    # docker-compose -p "${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}" -f $FILE_NAME up -d
     if [ $? -eq 0 ]; then
 
         echo "Creating agent config"
