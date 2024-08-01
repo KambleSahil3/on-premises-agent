@@ -268,7 +268,13 @@ cat <<EOF >${CONFIG_FILE}
   ],
   "webhookUrl": "$WEBHOOK_HOST",
   "adminPort": $ADMIN_PORT,
-  "tenancy": $TENANT
+  "tenancy": $TENANT,
+  "schemaFileServerURL": "https://schema.credebl.id/schemas/",
+  "didRegistryContractAddress": "0x1adeA199dCf07E17232415Cb232442BE52517Add",
+  "schemaManagerContractAddress": "0x289c7Bd4C7d38cC54bff370d6f9f01b74Df51b11",
+  "rpcUrl": "https://rpc-amoy.polygon.technology",
+  "fileServerUrl": "https://schema.credebl.id/",
+  "fileServerToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBeWFuV29ya3MiLCJpZCI6ImNhZDI3ZjhjLTMyNWYtNDRmZC04ZmZkLWExNGNhZTY3NTMyMSJ9.I3IR7abjWbfStnxzn1BhxhV0OEzt1x3mULjDdUcgWHk"
 }
 EOF
 
