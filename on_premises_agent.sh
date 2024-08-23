@@ -273,7 +273,7 @@ cat <<EOF >${CONFIG_FILE}
   "didRegistryContractAddress": "0xcB80F37eDD2bE3570c6C9D5B0888614E04E1e49E",
   "schemaManagerContractAddress": "0x4742d43C2dFCa5a1d4238240Afa8547Daf87Ee7a",
   "rpcUrl": "https://polygon-amoy.infura.io/v3/0579d305568d404e996e49695e9272a3",
-  "fileServerUrl": "https://schema.credebl.id/",
+  "fileServerUrl": "https://schema.credebl.id",
   "fileServerToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBeWFuV29ya3MiLCJpZCI6ImNhZDI3ZjhjLTMyNWYtNDRmZC04ZmZkLWExNGNhZTY3NTMyMSJ9.I3IR7abjWbfStnxzn1BhxhV0OEzt1x3mULjDdUcgWHk"
 }
 EOF
