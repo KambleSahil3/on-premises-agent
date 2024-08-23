@@ -254,8 +254,8 @@ cat <<EOF >${CONFIG_FILE}
     "$AGENT_ENDPOINT"
   ],
   "autoAcceptConnections": true,
-  "autoAcceptCredentials": "contentApproved",
-  "autoAcceptProofs": "contentApproved",
+  "autoAcceptCredentials": "always",
+  "autoAcceptProofs": "never",
   "logLevel": 2,
   "inboundTransport": [
     {
