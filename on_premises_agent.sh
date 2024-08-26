@@ -298,12 +298,15 @@ services:
     restart: always
     environment:
       AFJ_REST_LOG_LEVEL: 1
+    env_file:
+      - .env
     ports:
      - ${INBOUND_PORT}:${INBOUND_PORT}
      - ${ADMIN_PORT}:${ADMIN_PORT}
    
     volumes: 
-      - ./agent-config/${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}.json:/config.json   
+      - ./agent-config/${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}.jsoenv_file:
+      - .envn:/config.json   
       
     command: --auto-accept-connections --config /config.json
       
