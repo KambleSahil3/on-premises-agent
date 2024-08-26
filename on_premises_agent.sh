@@ -305,8 +305,7 @@ services:
      - ${ADMIN_PORT}:${ADMIN_PORT}
    
     volumes: 
-      - ./agent-config/${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}.jsoenv_file:
-      - .envn:/config.json   
+      - ./agent-config/${ORGANIZATION_ID}_${SANITIZED_AGENT_NAME}.json:/config.json   
       
     command: --auto-accept-connections --config /config.json
       
