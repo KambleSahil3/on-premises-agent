@@ -147,7 +147,7 @@ INDY_LEDGER_FORMATTED='[
         "indyNamespace": "indicio:mainnet"
     },
     {
-        "genesisTransactions": "http://test.bcovrin.vonx.io/genesis",
+        "genesisTransactions": "https://raw.githubusercontent.com/bcgov/von-network/main/BCovrin/genesis_test",
         "indyNamespace": "bcovrin:testnet"
     }
 ]'
